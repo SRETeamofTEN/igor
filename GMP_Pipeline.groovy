@@ -1,21 +1,14 @@
 def checkStatuses = "".toString();
 def toAddress = "DL_59BA2AAB5F99B79157000011@exchange.sap.corp".toString()
 
-JOBS_PATH = '$ENV_JOBS_PATH'
-COCKPITAPI_PATH = '$ENV_COCKPITAPI_PATH'
-THOUSAND_EYES_PATH = '$ENV_THOUSAND_EYES'
-
 pipeline {
 	options {
       timeout(time: 10, unit: 'MINUTES')
 	}
-
+	
     agent any
     environment {
 
-        JOBS_PATH = '$ENV_JOBS_PATH'
-        COCKPITAPI_PATH = '$ENV_COCKPITAPI_PATH'
-        THOUSAND_EYES_PATH = '$ENV_THOUSAND_EYES'
         checkInElkNoHV = false
         checkPools = false
         checkInElkNoVM = false
@@ -52,11 +45,7 @@ pipeline {
             steps {
                 script {
 					try {
-					echo ${JOBS_PATH}
-					echo "$COCKPITAPI_PATH"
-					echo "$THOUSAND_EYES_PATH"
-
-						GMP_POOLS_CHECK = sh(script:" jq -c '.cloudControllers[] | { Status: .availabilityZone.status, Pool:  .availabilityZone.name, InstanseSize: .instanceSize}' $JOBS_PATH/CockpitAPI/metrics.txt ", returnStdout: true).toString().trim()
+						GMP_POOLS_CHECK = sh(script:" jq -c '.cloudControllers[] | { Status: .availabilityZone.status, Pool:  .availabilityZone.name, InstanseSize: .instanceSize}' /usr/sap/ljs/home/.jenkins/jobs/CockpitAPI/metrics.txt ", returnStdout: true).toString().trim()
 						echo GMP_POOLS_CHECK
 						if (GMP_POOLS_CHECK.toString().contains("CRITICAL")  || GMP_POOLS_CHECK.toString().contains("Critical")) {
 							checkPools = true
@@ -83,7 +72,7 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME1", returnStdout: true).toString().trim()
+						CHECK_IN_ELK = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME1", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK
 						if (CHECK_IN_ELK.toString().contains("No suitable hypervisors found")) {
 							checkInElkNoHV = true
@@ -111,7 +100,7 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK2 = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME2", returnStdout: true).toString().trim()
+						CHECK_IN_ELK2 = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME2", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK2
 						if (CHECK_IN_ELK2.toString().contains("No suitable nodes are found")) {
 							checkInElkNoVM = true
@@ -138,7 +127,7 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK3 = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME3", returnStdout: true).toString().trim()
+						CHECK_IN_ELK3 = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME3", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK3
 						if (CHECK_IN_ELK3.toString().contains("ERROR")) {
 							checkInElkVMCreateFailed = true
@@ -165,7 +154,7 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK4 = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME4", returnStdout: true).toString().trim()
+						CHECK_IN_ELK4 = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME4", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK4
 						if (CHECK_IN_ELK4.toString().contains("ERROR")) {
 							checkInElkVMCreateTimeout = true
@@ -192,7 +181,7 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK5 = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME5", returnStdout: true).toString().trim()
+						CHECK_IN_ELK5 = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME5", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK5
 						if (CHECK_IN_ELK5.toString().contains("ERROR")) {
 							checkInElkRepoFailed = true
@@ -219,7 +208,7 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK8 = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME8", returnStdout: true).toString().trim()
+						CHECK_IN_ELK8 = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME8", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK8
 						if (CHECK_IN_ELK8.toString().contains("Caused")) {
 							checkInElkGMPConnectionIssues = true
@@ -247,8 +236,8 @@ pipeline {
             steps {
                 script {
 					try {
-						CHECK_IN_ELK6 = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME6", returnStdout: true).toString().trim()
-						CHECK_IN_ELK6_HITS = sh(script: "cd $JOBS_PATH && java -jar $JOBS_PATH/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME6 -d", returnStdout: true).toString().trim()
+						CHECK_IN_ELK6 = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME6", returnStdout: true).toString().trim()
+						CHECK_IN_ELK6_HITS = sh(script: "cd /usr/sap/ljs/home/.jenkins/jobs/ && java -jar /usr/sap/ljs/home/.jenkins/jobs/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME6 -d", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK6
 						checkStatuses = checkStatuses.concat("7. Statistics for Orchestrator Pool Size maintainer: " + CHECK_IN_ELK6_HITS + "\n")
 					}
@@ -261,14 +250,14 @@ pipeline {
         }
 
 
-		stage("Checking for failed stages") {
-            steps {
+		stage("Checking for failed stages") {  
+            steps { 
                 script {
                     CHECK_FAILURES = sh(script: "curl  ${BUILD_URL}/consoleText", returnStdout: true).toString().trim()
                     echo CHECK_FAILURES
                      if (CHECK_FAILURES.toString().contains("The stage Failed"))  {
-
-
+                        
+                        
                                  def bodymail = """
 
 Job Name is: $JOB_NAME
@@ -283,12 +272,12 @@ $JOB_URL$BUILD_NUMBER/console
                                 subject: "IGOR: Pipeline is failing: ${JOB_NAME}  ${formattedDate} UTC Build: $BUILD_NUMBER",
                                 body: "The Pipeline has failed. Please check all the UNSTABLE/Yellow stages to see why:"  + bodymail + "\n"  + "\nRegards, \nIgor"
                         echo "Mail Sent to " + toAddress
-
+             
                     } else {
                         echo "No Failing stages found"
                     }
 				}
-			}
+			}  
 		}
 
 
