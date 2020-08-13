@@ -1,6 +1,10 @@
 def checkStatuses = "".toString();
 def toAddress = "DL_59BA2AAB5F99B79157000011@exchange.sap.corp".toString()
 
+JOBS_PATH = '$ENV_JOBS_PATH'
+COCKPITAPI_PATH = '$ENV_COCKPITAPI_PATH'
+THOUSAND_EYES_PATH = '$ENV_THOUSAND_EYES'
+
 pipeline {
 	options {
       timeout(time: 10, unit: 'MINUTES')
@@ -9,10 +13,6 @@ pipeline {
     agent any
     environment {
 
-	
-	JOBS_PATH = '$ENV_JOBS_PATH'
-	COCKPITAPI_PATH = '$ENV_COCKPITAPI_PATH'
-	THOUSAND_EYES_PATH = '$ENV_THOUSAND_EYES'
 	
         checkInElkNoHV = false
         checkPools = false
