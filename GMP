@@ -9,10 +9,10 @@ pipeline {
     agent any
     environment {
 
-	#Directory Variables
-		JOBS_PATH = '$ENV_JOBS_PATH'
-		COCKPITAPI_PATH = '$ENV_COCKPITAPI_PATH'
-		COCKPITAPI_PATH = '$ENV_THOUSAND_EYES'
+	
+	JOBS_PATH = '$ENV_JOBS_PATH'
+	COCKPITAPI_PATH = '$ENV_COCKPITAPI_PATH'
+	COCKPITAPI_PATH = '$ENV_THOUSAND_EYES'
 	
         checkInElkNoHV = false
         checkPools = false
