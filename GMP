@@ -50,7 +50,7 @@ pipeline {
             steps {
                 script {
 					try {
-					echo $P{JOBS_PATH}
+					echo ${JOBS_PATH}
 					echo ${COCKPITAPI_PATH}
 					echo ${THOUSAND_EYES_PATH}
 					
