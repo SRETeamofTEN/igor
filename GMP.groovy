@@ -56,7 +56,7 @@ pipeline {
 					echo COCKPITAPI_PATH
 					echo THOUSAND_EYES_PATH
 
-						GMP_POOLS_CHECK = sh(script:" jq -c '.cloudControllers[] | { Status: .availabilityZone.status, Pool:  .availabilityZone.name, InstanseSize: .instanceSize}' $JOBS_PATH/CockpitAPI/metrics.txt ", returnStdout: true).toString().trim()
+						GMP_POOLS_CHECK = sh(script:" jq -c '.cloudControllers[] | { Status: .availabilityZone.status, Pool:  .availabilityZone.name, InstanseSize: .instanceSize}' $COCKPITAPI_PATHmetrics.txt ", returnStdout: true).toString().trim()
 						echo GMP_POOLS_CHECK
 						if (GMP_POOLS_CHECK.toString().contains("CRITICAL")  || GMP_POOLS_CHECK.toString().contains("Critical")) {
 							checkPools = true
