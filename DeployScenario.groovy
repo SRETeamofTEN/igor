@@ -166,7 +166,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME", returnStdout: true).toString().trim()
+						CHECK_IN_ELK = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK
 						if (CHECK_IN_ELK.toString().contains("ERROR")) {
 							checkInElkFailed = true
@@ -198,7 +198,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK2 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME2", returnStdout: true).toString().trim()
+						CHECK_IN_ELK2 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME2", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK2
 
 						def checkForDomainDBSlownesResults = (CHECK_IN_ELK2 =~ /system db] finished for \[([0-9]+)sec./)
@@ -239,7 +239,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK3 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME3", returnStdout: true).toString().trim()
+						CHECK_IN_ELK3 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME3", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK3
 
 						def checkForJpaasSlownesResults = (CHECK_IN_ELK3 =~ /JPaaS Repository] finished for \[([0-9]+)sec./)
@@ -281,7 +281,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK4 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME4", returnStdout: true).toString().trim()
+						CHECK_IN_ELK4 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME4", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK4
 
 						if (CHECK_IN_ELK4.toString().contains("ERROR")) {
@@ -311,7 +311,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK5 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME5", returnStdout: true).toString().trim()
+						CHECK_IN_ELK5 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME5", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK5
 
 						if (CHECK_IN_ELK5.toString().contains("ERROR")) {
@@ -340,7 +340,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK6 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME6", returnStdout: true).toString().trim()
+						CHECK_IN_ELK6 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME6", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK6
 
 						if (CHECK_IN_ELK6.toString().contains("ERROR")) {
@@ -369,7 +369,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK7 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME7", returnStdout: true).toString().trim()
+						CHECK_IN_ELK7 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME7", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK7
 
 						if (CHECK_IN_ELK7.toString().contains("ERROR")) {
@@ -398,7 +398,7 @@ Check build number: $BUILD_NUMBER
                 echo "$elkLogStage"
                 script {
 					try {
-						CHECK_IN_ELK8 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $DC -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME8", returnStdout: true).toString().trim()
+						CHECK_IN_ELK8 = sh(script: "cd $ENV_JOBS && java -jar $ENV_JOBS/KibanaSearch.jar -l $LANDSCAPE -k $TARGET -u $AUTH_USR -p $AUTH_PSW -c $CHECK_NAME8", returnStdout: true).toString().trim()
 						echo CHECK_IN_ELK8
 
 						if (CHECK_IN_ELK8.toString().contains("ERROR")) {
