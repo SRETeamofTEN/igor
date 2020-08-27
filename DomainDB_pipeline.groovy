@@ -11,7 +11,9 @@ pipeline {
     agent any
     environment {
         checkInAvsFailed = false;
+        checkInAvsFailedAgain = false;
         checkInDirectFailed = false
+        checkInDirectFailedAgain = false
         checkInThousandEyes = false
         checkInElkConnsToDomainDB = false
         checkInElkDomainDBFailover = false
@@ -62,19 +64,55 @@ pipeline {
         stage('Checking monitor in AvS and Directly') {
             steps {
                 script {
-                    CHECK_IN_AVS = sh(script: "python $ENV_JOBS/avs_requests.py  $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
+
+                    CHECK_IN_AVS = sh(script: "python $ENV_JOBS/avs_requests3.py $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
                     echo CHECK_IN_AVS
+
                     if (CHECK_IN_AVS.toString().contains("DOWN")) {
-						checkInAvsFailed = true
-                        echo "AVS check is DOWN. Now checking Directly."											
-						if (CHECK_IN_AVS.toString().contains("200")) {
-							echo "Direct check is up."
-                            checkInDirectFailed=false
-                            checkStatuses = checkStatuses.concat("1. AVS DOWN, but Direct check is UP\n")
-						} else {
+                        checkInAvsFailed = true
+                        echo "AVS check is DOWN. Now checking Directly."
+
+                        if (CHECK_IN_AVS.toString().contains("200")) {
+                            echo "Direct check is up."
+                            checkStatuses = checkStatuses.concat("<b>1. AVS DOWN, but Direct check is UP</b>\n")
+                        }else {
                             checkInDirectFailed = true
                             echo "Direct check is down."
-							checkStatuses = checkStatuses.concat("1. AVS and Direct status: DOWN\n")
+                            checkStatuses = checkStatuses.concat("1. AVS and Direct status: DOWN\n")
+                            unstable("AVS and Direct check status are DOWN")
+                        }
+
+                    } else {
+                        echo "AVS status is UP."
+                        checkStatuses = checkStatuses.concat("1. AVS status: UP\n")
+                    }
+
+                }
+            }
+        }
+
+        stage('Double-checking as it failed in previous stage.') {
+		        when {
+                expression {
+                    checkInAvsFailed == true && checkInDirectFailed == true 
+                }
+            }
+            steps {
+                script {
+                    sleep(30)
+                    CHECK_IN_AVS_AGAIN = sh(script: "python $ENV_JOBS/avs_requests3.py  $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
+                    echo CHECK_IN_AVS_AGAIN
+                    if (CHECK_IN_AVS_AGAIN.toString().contains("DOWN")) {
+						checkInAvsFailedAgain = true
+                        echo "AVS check is DOWN. Now checking Directly."											
+						if (CHECK_IN_AVS_AGAIN.toString().contains("200")) {
+							
+                            checkInDirectFailedAgain=true
+                            checkStatuses = checkStatuses.concat("1.1 Second check(avs): AVS DOWN, but Direct check is UP\n")
+						} else {
+                            checkInDirectFailedAgain = false
+                            echo "Direct check is down."
+							checkStatuses = checkStatuses.concat("1.1 Second check(avs): AVS and Direct status: DOWN\n")
 							unstable("AVS and Direct check status are DOWN")
                         }
 					} else {
@@ -84,7 +122,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Checking if there are ThousandEyes alerts for checks 1,2,3 and 8 for') {
             steps {
@@ -106,7 +143,7 @@ pipeline {
         stage('Mail Alert: OUTAGE - Network issues') {
             when {
                 expression {
-                    checkInAvsFailed == true && checkInDirectFailed == true && checkInThousandEyes == true
+                    checkInAvsFailedAgain == true && checkInDirectFailedAgain == true && checkInThousandEyes == true
                 }
             }
             steps {
@@ -410,17 +447,18 @@ Check build number: $BUILD_NUMBER
 						checkInElkWriteToAudit = true
 						checkStatuses = checkStatuses.concat("12. DomainDB is unable to write to Audit Log: ERROR while trying to reach LogSearch! \n")
 						unstable("ERROR while trying to reach LogSearch!")
+						
 					}
                 }
             }
         }
 		
 		
-        stage("Mail Alert: Service is down or there is a dependency issue") {
+        stage("Mail Alert: OUTAGE Service is down or there is a dependency issue") {
 
             when {
                 expression {
-                    (checkInAvsFailed == true && checkInDirectFailed == true) && (checkInDomainDBMetrics == true || checkInDynatrace == true) && (checkInElkDomainDBSlow == true || checkInElkConnsToDomainDB == true || checkInElkDomainDBFailover == true || checkInElkBorrowedConnectionsReached == true || checkInElkUnableToReadUM == true || checkInElkUnexpectedResponse == true || checkInElkSendToAuditLog == true || checkInElkWriteToAudit == true)
+                    (checkInAvsFailedAgain == true && checkInDirectFailedAgain == true)
                 }
             }
             steps {
@@ -473,43 +511,13 @@ Check build number: $BUILD_NUMBER
                             subject: "IGOR: OUTAGE DETECTED ${WHERE} DOMAINDB issues detected at:  ${formattedDate} UTC",
                             body: "Hi Colleagues,\n\nThere was a failover at $WHERE landscape. Please check the report:  \n\n" + checkStatuses + bodymail + "\n" + "\nRegards, \nIgor"
                     echo "Mail Sent to " + toAddressFailover
-                }
-            }
-        }
-
-
-        stage('Send Mail Alert') {
-            when {
-                expression {
-                    checkInElkDomainDBFailover == true || (checkInAvsFailed && (checkInDirectFailed == true || checkInDynatrace == true || checkInDomainDBMetrics == true || checkInElkConnsToDomainDB == true || checkInElkBorrowedConnectionsReached == true || checkInElkUnableToReadUM == true || checkInElkUnexpectedResponse == true || checkInElkDomainDBSlow == true || checkInElkSendToAuditLog == true || checkInElkWriteToAudit == true))
-                }
-            }
-            steps {
-                script {
-                    def bodymail = """
-
-
-
-
-Job Name is: $JOB_NAME
-Job URL: $JOB_URL
-Job Console Output (in case of issues with the build itself):
-$JOB_URL$BUILD_NUMBER/console
-Check build number: $BUILD_NUMBER
-
-"""
-                    def date = new Date()
-                    def formattedDate = date.format("MMMM dd HH:mm")
-
-
-                    mail to: toAddress,
-                            from: SENDER,
-                            subject: "IGOR: ${WHERE} DOMAINDB issues detected at:  ${formattedDate} UTC",
-                            body: "Hi Colleagues,\n\nHere is an automated report from Igor pipeline that caught some issues in DomainDB: \n\n" + checkStatuses + bodymail + "\n" + "\nRegards, \nIgor"
-                    echo "Mail Sent to " + toAddress
+					        checkInAvsFailed = false;
+							
 
                 }
             }
         }
-    }
+
+}
+
 }
