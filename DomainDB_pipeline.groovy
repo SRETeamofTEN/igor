@@ -1,5 +1,5 @@
 def checkStatuses = "".toString();
-def toAddress = "DL_59BA2AAB5F99B79157000011@exchange.sap.corp".toString()
+def toAddress = "hristo.popov@sap.com".toString()
 def toAddressFailover = "matthias.gradl@sap.com,valentin.zipf@sap.com, DL_59BA2AAB5F99B79157000011@exchange.sap.corp".toString()
 
 //Email has to be redone after adding thousand eyes and Dynatrace integrations in 2 more stages
