@@ -14,6 +14,7 @@ pipeline {
         checkInAvsFailedAgain = false;
         checkInDirectFailed = false
         checkInDirectFailedAgain = false
+        errorWasPresented = false
         checkInThousandEyes = false
         checkInElkConnsToDomainDB = false
         checkInElkDomainDBFailover = false
@@ -64,27 +65,41 @@ pipeline {
         stage('Checking monitor in AvS and Directly') {
             steps {
                 script {
-
+                    try {
                     CHECK_IN_AVS = sh(script: "python $ENV_JOBS/avs_requests3.py $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
                     echo CHECK_IN_AVS
 
-                    if (CHECK_IN_AVS.toString().contains("DOWN")) {
-                        checkInAvsFailed = true
-                        echo "AVS check is DOWN. Now checking Directly."
-
-                        if (CHECK_IN_AVS.toString().contains("200")) {
-                            echo "Direct check is up."
-                            checkStatuses = checkStatuses.concat("<b>1. AVS DOWN, but Direct check is UP</b>\n")
-                        }else {
-                            checkInDirectFailed = true
-                            echo "Direct check is down."
-                            checkStatuses = checkStatuses.concat("1. AVS and Direct status: DOWN\n")
-                            unstable("AVS and Direct check status are DOWN")
+                    if ((CHECK_IN_AVS.toString() =~ /AVS STATUS: DOWN/) && (CHECK_IN_AVS.toString() =~ /Direct check Response code: 5[0-9]+/)) {
+						checkInAvsFailed = true
+						checkInDirectFailed = true
+                        echo "Both Avs and direct indicated issues.."	
+                        checkStatuses = checkStatuses.concat("1.1 Both AvS and Direct checks have indicated issues: BAD")
+                        unstable("AVS and Direct check status are DOWN")
                         }
-
-                    } else {
-                        echo "AVS status is UP."
-                        checkStatuses = checkStatuses.concat("1. AVS status: UP\n")
+                    else if (CHECK_IN_AVS.toString() =~ /Direct check Response code: 5[0-9]+/) {
+						checkInDirectFailed = true
+                        echo "Direct check is down."
+                        checkStatuses = checkStatuses.concat("1.1 AvS is fine, but Direct check is down. It might be flapping: BAD")
+                        unstable("AVS is UP and Direct check status is DOWN")
+                        }
+                    else if (CHECK_IN_AVS.toString() =~ /AVS STATUS: DOWN/){
+						checkInAvsFailed = true
+                        echo "AvS check is down."
+                        checkStatuses = checkStatuses.concat("1.1 AvS check is down, but Direct is working. It is a false positive: OK")
+                        unstable("AVS is DOWN and Direct check status is UP")
+                        }
+                    else if (CHECK_IN_AVS.toString() =~ /(ERROR|Traceback)/) {
+                        errorWasPresented = true 
+                        unstable("There was an error in the python script. Forsing second attempt. ")
+                    }
+                    else{
+                        echo " All seems fine." 
+                        checkStatuses = checkStatuses.concat("1.1 AvS and Direct are fine: OK")
+                    }
+                    } catch (err) {
+                        errorWasPresented = true 
+                        echo err.getMessage()
+                        unstable("There was an error in the stage. Set the variable to test it in the next stage. ")
                     }
 
                 }
@@ -94,31 +109,51 @@ pipeline {
         stage('Double-checking as it failed in previous stage.') {
 		        when {
                 expression {
-                    checkInAvsFailed == true && checkInDirectFailed == true 
+                    ((checkInAvsFailed == true && checkInDirectFailed == true) || errorWasPresented == true)
                 }
             }
             steps {
                 script {
                     sleep(30)
-                    CHECK_IN_AVS_AGAIN = sh(script: "python $ENV_JOBS/avs_requests3.py  $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
+                      try {
+                    CHECK_IN_AVS_AGAIN = sh(script: "python $ENV_JOBS/avs_requests3.py $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
                     echo CHECK_IN_AVS_AGAIN
-                    if (CHECK_IN_AVS_AGAIN.toString().contains("DOWN")) {
+
+                    if ((CHECK_IN_AVS_AGAIN.toString() =~ /AVS STATUS: DOWN/) && (CHECK_IN_AVS.toString() =~ /Direct check Response code: 5[0-9]+/)) {
 						checkInAvsFailedAgain = true
-                        echo "AVS check is DOWN. Now checking Directly."											
-						if (CHECK_IN_AVS_AGAIN.toString().contains("200")) {
-							
-                            checkInDirectFailedAgain=true
-                            checkStatuses = checkStatuses.concat("1.1 Second check(avs): AVS DOWN, but Direct check is UP\n")
-						} else {
-                            checkInDirectFailedAgain = false
-                            echo "Direct check is down."
-							checkStatuses = checkStatuses.concat("1.1 Second check(avs): AVS and Direct status: DOWN\n")
-							unstable("AVS and Direct check status are DOWN")
+						checkInDirectFailedAgain = true
+                        echo "Both Avs and direct indicated issues.."	
+                        checkStatuses = checkStatuses.concat("1.2 Both AvS and Direct checks have indicated issues: BAD")
+                        unstable("AVS and Direct check status are DOWN")
                         }
-					} else {
-                        echo "AVS status is UP."
-						checkStatuses = checkStatuses.concat("1. AVS status: UP\n")
-					}
+                    else if (CHECK_IN_AVS_AGAIN.toString() =~ /Direct check Response code: 5[0-9]+/) {
+						checkInDirectFailed = true
+                        echo "Direct check is down."
+                        checkStatuses = checkStatuses.concat("1.2 AvS is fine, but Direct check is down. It might be flapping: BAD")
+                        unstable("AVS is UP and Direct check status is DOWN")
+                        }
+                    else if (CHECK_IN_AVS_AGAIN.toString() =~ /AVS STATUS: DOWN/){
+						checkInAvsFailed = true
+                        echo "AvS check is down."
+                        checkStatuses = checkStatuses.concat("1.2 AvS check is down, but Direct is working. It is a false positive: OK")
+                        unstable("AVS is DOWN and Direct check status is UP")
+                        }
+                    else if (CHECK_IN_AVS_AGAIN.toString() =~ /(ERROR|Traceback)/) {
+                        errorWasPresented = true 
+                        echo "Second attempt has finished with error in the python script"
+                        currentBuild.result = 'FAILED'
+                    }
+                    else{
+                        echo " All seems fine." 
+                        checkStatuses = checkStatuses.concat("1.2 AvS and Direct are fine: OK")
+                    }
+                    } catch (err) {
+                        errorWasPresented = true 
+                        echo err.getMessage()
+                        echo "Second attempt has finished with error in the python script"
+                        currentBuild.result = 'FAILED'
+                    }
+
                 }
             }
         }
