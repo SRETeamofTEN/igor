@@ -91,6 +91,10 @@ finally:
         os.environ["AVS_TOKEN"] = only_token
         #print(os.environ["AVS_TOKEN"])
         t1 = time.time()
+        
+        f = open( '/usr/sap/ljs/home/.jenkins/jobs/avs_token.txt', 'w' )
+        f.write( only_token )
+        f.close()
         print('Took', t1 - t0, 'seconds')
     except NameError:
         pass
