@@ -70,3 +70,4 @@ except requests.exceptions.HTTPError as err:
     raise SystemExit(err)
 except Exception as x:
     print( "ERROR: Failed to get complete the task and the exception is not handled. Please check the type of error in the traceback", x.__class__.__name__)
+
