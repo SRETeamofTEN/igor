@@ -1,4 +1,4 @@
-def checkStatuses = "<html>".toString();
+def checkStatuses = "".toString();
 def toAddress = "hristo.popov@sap.com".toString()
 def toAddressFailover = "hristo.popov@sap.com".toString()
 
@@ -126,7 +126,7 @@ pipeline {
                     CHECK_IN_AVS_AGAIN = sh(script: "python $ENV_JOBS/avs_requests3.py $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
                     echo CHECK_IN_AVS_AGAIN
 
-                    if ((CHECK_IN_AVS_AGAIN.toString() =~ /AVS STATUS: DOWN/) && (CHECK_IN_AVS.toString() =~ /Direct check Response code: 5[0-9]+/)) {
+                    if ((CHECK_IN_AVS_AGAIN.toString() =~ /AVS STATUS: DOWN/) && (CHECK_IN_AVS_AGAIN.toString() =~ /Direct check Response code: 5[0-9]+/)) {
 						checkInAvsFailedAgain = true
 						checkInDirectFailedAgain = true
                         echo "Both Avs and direct indicated issues.."	
@@ -134,12 +134,12 @@ pipeline {
                         unstable("AVS and Direct check status are DOWN")
                         }
                     else if (CHECK_IN_AVS_AGAIN.toString() =~ /Direct check Response code: 5[0-9]+/) {
-						checkInDirectFailed = true
+						checkInDirectFailedAgain = true
                         echo "Direct check is down."
                         checkStatuses = checkStatuses.concat("1.2 AvS is fine, but Direct check is down. It might be flapping: BAD")
                         unstable("AVS is UP and Direct check status is DOWN")
                         }
-                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"|"recent":"DOWN"/) {
+                    else if (CHECK_IN_AVS_AGAIN.toString() =~ /"overall":"DOWN"|"recent":"DOWN"/) {
 						checkInDirectFailedAgain = true
                         echo "Direct check is down as response has overall:DOWN."
                         checkStatuses = checkStatuses.concat("1.2 Direct check is down as response has overall:DOWN:  BAD")
@@ -557,7 +557,7 @@ Check build number: $BUILD_NUMBER
                     mail to: toAddress,
                             from: SENDER,
                             subject: "IGOR: OUTAGE DETECTED ${WHERE} DOMAINDB issues detected at:  ${formattedDate} UTC",
-                            body: "Hi Colleagues,\n\nThere was a failover at $WHERE landscape. Please check the report:  \n\n" + "<html>" + checkStatuses + bodymail +  "</html>" "\n" + "\nRegards, \nIgor"
+                            body: "Hi Colleagues,\n\nThere was a failover at $WHERE landscape. Please check the report:  \n\n"  + checkStatuses + bodymail +"\nRegards, \nIgor"
                     echo "Mail Sent to " + toAddressFailover
 					        checkInAvsFailed = false;
 							
