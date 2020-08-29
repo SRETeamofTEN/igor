@@ -83,7 +83,7 @@ pipeline {
                         checkStatuses = checkStatuses.concat("1.1 AvS is fine, but Direct check is down. It might be flapping: BAD")
                         unstable("AVS is UP and Direct check status is DOWN")
                         }
-                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"/) {
+                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"|"recent":"DOWN"/) {
 						checkInDirectFailed = true
                         echo "Direct check is down as response has overall:DOWN."
                         checkStatuses = checkStatuses.concat("1.1 Direct check is down as response has overall:DOWN:  BAD")
@@ -101,7 +101,7 @@ pipeline {
                     }
                     else{
                         echo " All seems fine." 
-                        checkStatuses = checkStatuses.concat("1.1 AvS and Direct are fine: OK")
+                        checkStatuses = checkStatuses.concat("<b>1.1 AvS and Direct are fine: OK</b> \n")
                     }
                     } catch (err) {
                         errorWasPresented = true 
@@ -139,7 +139,7 @@ pipeline {
                         checkStatuses = checkStatuses.concat("1.2 AvS is fine, but Direct check is down. It might be flapping: BAD")
                         unstable("AVS is UP and Direct check status is DOWN")
                         }
-                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"/) {
+                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"|"recent":"DOWN"/) {
 						checkInDirectFailedAgain = true
                         echo "Direct check is down as response has overall:DOWN."
                         checkStatuses = checkStatuses.concat("1.2 Direct check is down as response has overall:DOWN:  BAD")
