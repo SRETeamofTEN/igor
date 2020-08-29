@@ -1,4 +1,4 @@
-def checkStatuses = "".toString();
+def checkStatuses = "<html>".toString();
 def toAddress = "hristo.popov@sap.com".toString()
 def toAddressFailover = "hristo.popov@sap.com".toString()
 
@@ -15,6 +15,7 @@ pipeline {
         checkInDirectFailed = false
         checkInDirectFailedAgain = false
         errorWasPresented = false
+        
         checkInThousandEyes = false
         checkInElkConnsToDomainDB = false
         checkInElkDomainDBFailover = false
@@ -66,7 +67,7 @@ pipeline {
             steps {
                 script {
                     try {
-                    CHECK_IN_AVS = sh(script: "python $ENV_JOBS/avs_requests3.py $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
+                    CHECK_IN_AVS = sh(script: "python $ENV_JOBS/avs_requests4.py $EVAL_DATA $DIRECT_URL $AUTH_USR $AUTH_PSW", returnStdout: true).toString().trim()
                     echo CHECK_IN_AVS
 
                     if ((CHECK_IN_AVS.toString() =~ /AVS STATUS: DOWN/) && (CHECK_IN_AVS.toString() =~ /Direct check Response code: 5[0-9]+/)) {
@@ -80,6 +81,12 @@ pipeline {
 						checkInDirectFailed = true
                         echo "Direct check is down."
                         checkStatuses = checkStatuses.concat("1.1 AvS is fine, but Direct check is down. It might be flapping: BAD")
+                        unstable("AVS is UP and Direct check status is DOWN")
+                        }
+                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"/) {
+						checkInDirectFailed = true
+                        echo "Direct check is down as response has overall:DOWN."
+                        checkStatuses = checkStatuses.concat("1.1 Direct check is down as response has overall:DOWN:  BAD")
                         unstable("AVS is UP and Direct check status is DOWN")
                         }
                     else if (CHECK_IN_AVS.toString() =~ /AVS STATUS: DOWN/){
@@ -132,16 +139,22 @@ pipeline {
                         checkStatuses = checkStatuses.concat("1.2 AvS is fine, but Direct check is down. It might be flapping: BAD")
                         unstable("AVS is UP and Direct check status is DOWN")
                         }
+                    else if (CHECK_IN_AVS.toString() =~ /"overall":"DOWN"/) {
+						checkInDirectFailedAgain = true
+                        echo "Direct check is down as response has overall:DOWN."
+                        checkStatuses = checkStatuses.concat("1.2 Direct check is down as response has overall:DOWN:  BAD")
+                        unstable("AVS is UP and Direct check status is DOWN")
+                        }
                     else if (CHECK_IN_AVS_AGAIN.toString() =~ /AVS STATUS: DOWN/){
-						checkInAvsFailed = true
+						checkInAvsFailedAgain = true
                         echo "AvS check is down."
                         checkStatuses = checkStatuses.concat("1.2 AvS check is down, but Direct is working. It is a false positive: OK")
                         unstable("AVS is DOWN and Direct check status is UP")
                         }
                     else if (CHECK_IN_AVS_AGAIN.toString() =~ /(ERROR|Traceback)/) {
-                        errorWasPresented = true 
-                        echo "Second attempt has finished with error in the python script"
-                        currentBuild.result = 'FAILED'
+                        errorWasPresentedAgain = true 
+                        echo "Second attempt has finished with error in the python script. Setting it to FAILURE"
+                        currentBuild.result = 'FAILURE'
                     }
                     else{
                         echo " All seems fine." 
@@ -150,8 +163,8 @@ pipeline {
                     } catch (err) {
                         errorWasPresented = true 
                         echo err.getMessage()
-                        echo "Second attempt has finished with error in the python script"
-                        currentBuild.result = 'FAILED'
+                        echo "Second attempt has finished with error in the python script. Setting it to FAILURE"
+                        currentBuild.result = 'FAILURE'
                     }
 
                 }
@@ -493,7 +506,7 @@ Check build number: $BUILD_NUMBER
 
             when {
                 expression {
-                    (checkInAvsFailedAgain == true && checkInDirectFailedAgain == true)
+                    (checkInAvsFailedAgain == true && checkInDirectFailedAgain == true) || "$ENV_COMPLETE_TESTRUN".toBoolean() == true
                 }
             }
             steps {
@@ -544,7 +557,7 @@ Check build number: $BUILD_NUMBER
                     mail to: toAddress,
                             from: SENDER,
                             subject: "IGOR: OUTAGE DETECTED ${WHERE} DOMAINDB issues detected at:  ${formattedDate} UTC",
-                            body: "Hi Colleagues,\n\nThere was a failover at $WHERE landscape. Please check the report:  \n\n" + checkStatuses + bodymail + "\n" + "\nRegards, \nIgor"
+                            body: "Hi Colleagues,\n\nThere was a failover at $WHERE landscape. Please check the report:  \n\n" + "<html>" + checkStatuses + bodymail +  "</html>" "\n" + "\nRegards, \nIgor"
                     echo "Mail Sent to " + toAddressFailover
 					        checkInAvsFailed = false;
 							
